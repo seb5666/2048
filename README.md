@@ -1,7 +1,7 @@
 # 2048 AI
 
 Simple minimax agent to play the game.
-[Link](https://pages.github.com/) to see it play in action, might use a lot of resources when playing in your browser...
+[Link](https://seb5666.github.com/2048) to see it play in action, might use a lot of resources when playing in your browser...
 
 
 
