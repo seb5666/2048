@@ -70,11 +70,11 @@ Grid.prototype.cellsAvailable = function () {
 
 // Check if the specified cell is taken
 Grid.prototype.cellAvailable = function (cell) {
-  return !this.cellOccupied(cell);
+  return !this.cellOccupied(cell); 
 };
 
 Grid.prototype.cellOccupied = function (cell) {
-  return !!this.cellContent(cell);
+  return !!this.cellContent(cell); //LOL what is this?
 };
 
 Grid.prototype.cellContent = function (cell) {

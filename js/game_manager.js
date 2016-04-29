@@ -4,12 +4,13 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
 
-  this.startTiles     = 2;
+  this.startTiles     = 10;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
+  //setup the game
   this.setup();
 }
 
@@ -33,7 +34,9 @@ GameManager.prototype.isGameTerminated = function () {
 
 // Set up the game
 GameManager.prototype.setup = function () {
+
   var previousState = this.storageManager.getGameState();
+  console.log(previousState);
 
   // Reload the game from a previous game if present
   if (previousState) {
@@ -56,7 +59,42 @@ GameManager.prototype.setup = function () {
 
   // Update the actuator
   this.actuate();
+  this.play();
 };
+
+GameManager.prototype.play = function () {
+  console.log("playing");
+  //0: Up
+  //1: Right
+  //2: Down
+  // //3: 
+  var self = this;
+
+  var agent = new Agent();
+  var interval = 1000;
+  var depth = 3;
+
+  window.setInterval(function() {
+    var board = [];
+    for(var x=0; x<self.size; x++) {
+      var row = []
+      for(var y=0; y<self.size; y++) {
+        var tile = self.grid.cellContent({x: x, y: y});
+        var value = 0;
+        if (tile) {
+          value = tile.value;
+        } 
+        row.push(value);
+      }
+      board.push(row);
+    }
+    //var bestDirection = agent.max(board, 2)[0];
+    var bestDirection = agent.maxAB(board, depth, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)[0];
+    console.log("Best: ", bestDirection);
+    self.move(bestDirection);
+  }
+  , interval);
+}
 
 // Set up the initial tiles to start the game with
 GameManager.prototype.addStartTiles = function () {
@@ -68,7 +106,8 @@ GameManager.prototype.addStartTiles = function () {
 // Adds a tile in a random position
 GameManager.prototype.addRandomTile = function () {
   if (this.grid.cellsAvailable()) {
-    var value = Math.random() < 0.9 ? 2 : 4;
+    //var value = Math.random() < 0.9 ? 2 : 4;
+    var value = 2; //CHANGED
     var tile = new Tile(this.grid.randomAvailableCell(), value);
 
     this.grid.insertTile(tile);
@@ -137,12 +176,17 @@ GameManager.prototype.move = function (direction) {
 
   var vector     = this.getVector(direction);
   var traversals = this.buildTraversals(vector);
+  // console.log("Vector");
+  // console.log(vector);
+  // console.log("traversals");
+  // console.log(traversals);
   var moved      = false;
 
   // Save the current tile positions and remove merger information
   this.prepareTiles();
 
   // Traverse the grid in the right direction and move tiles
+  // Here right direction means from the right if you push right, otherwise from the left and similarly for up/down
   traversals.x.forEach(function (x) {
     traversals.y.forEach(function (y) {
       cell = { x: x, y: y };
@@ -150,7 +194,12 @@ GameManager.prototype.move = function (direction) {
 
       if (tile) {
         var positions = self.findFarthestPosition(cell, vector);
-        var next      = self.grid.cellContent(positions.next);
+        //positions.next = first tile after cell that isn't empty
+        //positions.fartherst = last empty tile after cell
+        //console.log("X: " + x + ", Y: " + y);
+        //console.log(positions);
+        
+        var next = self.grid.cellContent(positions.next); //returns null if position is out of board
 
         // Only one merger per row traversal?
         if (next && next.value === tile.value && !next.mergedFrom) {
@@ -231,7 +280,7 @@ GameManager.prototype.findFarthestPosition = function (cell, vector) {
 
   return {
     farthest: previous,
-    next: cell // Used to check if a merge is required
+    next: cell // Used to check if a merge is required, i.e. if next has the same value
   };
 };
 
