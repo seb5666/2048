@@ -71,7 +71,7 @@ GameManager.prototype.play = function () {
   var self = this;
 
   var agent = new Agent();
-  var interval = 1000;
+  var interval = 10;
   var depth = 3;
 
   window.setInterval(function() {
